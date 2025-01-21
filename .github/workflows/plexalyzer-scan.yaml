@@ -1,0 +1,58 @@
+name: PLEXALYZER Analysis
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  analyze:
+    if: ${{ !startsWith(github.head_ref, 'Plexicus-AI-Remediation-') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get Changed Files and Save to File
+        id: get_changed_files
+        if: ${{ vars.COVULOR_REPO_ID }}
+        shell: bash
+        run: |
+          # Capture changed files and save to a temporary file
+          changed_files=$(git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}")
+          echo "$changed_files" | jq -R -s -c 'split("\n")[:-1]' > files_to_scan.json
+          echo "files_path=$(pwd)/files_to_scan.json" >> $GITHUB_ENV
+
+      - name: Set Empty Files Path if Not Set
+        if: ${{ !vars.COVULOR_REPO_ID }}
+        run: echo "files_path=" >> $GITHUB_ENV
+
+      - name: Run PLEXALYZER Analysis
+        uses: plexicus/plexicus-action@main
+        with:
+          plexalyzer-token: ${{ secrets.PLEXALYZER_TOKEN }}
+          repo-id: ${{ vars.COVULOR_REPO_ID }}
+          repo-name: ${{ github.repository }}
+          branch: ${{ github.event.pull_request.base.ref }}
+          url: ${{ github.event.repository.clone_url }}
+          files-path: ${{ env.files_path }}
+          workspace-path: ${{ github.workspace }}
+
+      - name: Comment Findings on PR
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const findings = JSON.parse(process.env.findings_output || "[]");
+            const prNumber = context.payload.pull_request.number;
+      
+            let bodyMessage = findings.length
+              ? "### Analysis Results\nThe following issues were found:\n\n" + findings.map((issue, i) => `- **Issue ${i + 1}**: ${issue}`).join("\n")
+              : "### Analysis Results\nNo issues found.";
+      
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: bodyMessage,
+            });
