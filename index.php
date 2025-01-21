@@ -1,5 +1,6 @@
 <?php
 // Conexión a la base de datos (modifica con tus propios parámetros de conexión)
+// A little comment for update
 $servername = "localhost";
 $username = "tu_usuario";
 $password = "tu_contraseña";
