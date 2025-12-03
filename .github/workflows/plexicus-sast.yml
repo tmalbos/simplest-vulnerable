@@ -80,7 +80,6 @@ jobs:
           echo "Conclusion: ${{ steps.plexalyzer.conclusion }}"
           echo "Outcome: ${{ steps.plexalyzer.outcome }}"
           echo ""
-          echo "SARIF output length: ${{ length(steps.plexalyzer.outputs.sarif-output) }}"
           echo "First 200 chars of sarif-output:"
           echo "${{ steps.plexalyzer.outputs.sarif-output }}" | head -c 200
 
