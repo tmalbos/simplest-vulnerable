@@ -55,13 +55,13 @@ jobs:
           workspace-path: ${{ github.workspace }}
 
       - name: Save SARIF output to file
-        if: steps.plexalyzer.outcome == 'success'
+        if: steps.plexalyzer.outcome == 'failure'
         shell: bash
         run: |
           printf '%s' "${{ steps.plexalyzer.outputs.sarif-output }}" > results.sarif
 
       - name: Upload SARIF results to GitHub
-        if: steps.plexalyzer.outcome == 'success'
+        if: steps.plexalyzer.outcome == 'failure'
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: results.sarif
