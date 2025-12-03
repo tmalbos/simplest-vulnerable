@@ -63,5 +63,5 @@ jobs:
       - name: Upload SARIF results to GitHub
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: results.sarif
+          sarif_file: "$(pwd)/sarif_output.json"
           category: plexalyzer
