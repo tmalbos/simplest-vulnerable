@@ -55,6 +55,35 @@ jobs:
           files-path: ${{ env.files_path }}
           workspace-path: ${{ github.workspace }}
 
+      - name: Debug - Check if results.sarif exists
+        shell: bash
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Files in current directory:"
+          ls -la
+          echo ""
+          echo "Checking results.sarif:"
+          if [ -f "results.sarif" ]; then
+            echo "results.sarif exists!"
+            echo "File size: $(wc -c < results.sarif) bytes"
+            echo "First 500 characters:"
+            head -c 500 results.sarif
+            echo ""
+          else
+            echo "ERROR: results.sarif does not exist!"
+          fi
+
+      - name: Debug - Check plexalyzer outputs
+        shell: bash
+        run: |
+          echo "Plexalyzer step outputs:"
+          echo "Conclusion: ${{ steps.plexalyzer.conclusion }}"
+          echo "Outcome: ${{ steps.plexalyzer.outcome }}"
+          echo ""
+          echo "SARIF output length: ${{ length(steps.plexalyzer.outputs.sarif-output) }}"
+          echo "First 200 chars of sarif-output:"
+          echo "${{ steps.plexalyzer.outputs.sarif-output }}" | head -c 200
+
       - name: Upload SARIF results to GitHub
         uses: github/codeql-action/upload-sarif@v4
         with:
